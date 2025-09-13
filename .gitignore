@@ -1,0 +1,20 @@
+
+# NetBeans
+/nbproject/private/
+/build/
+/dist/
+/nbbuild/
+/nbdist/
+/.nb-gradle/
+
+# Archivos compilados
+*.class
+*.jar
+*.war
+*.ear
+
+# Logs
+*.log
+
+# Archivos de configuración específicos del entorno
+config.properties
