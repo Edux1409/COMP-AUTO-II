@@ -210,6 +210,7 @@ public class Control {
         OPERADORES.put("%", "OPA");
         OPERADORES.put("++", "OPA");
         OPERADORES.put("--", "OPA");
+        OPERADORES.put("=", "OPA");
         
         // Operadores relacionales
         OPERADORES.put("==", "OPR");
@@ -341,20 +342,41 @@ public class Control {
 
             // 1. Cadenas de texto (entre comillas)
             if (currentChar == '"') {
-                int endQuote = texto.indexOf('"', pos + 1);
-                if (endQuote == -1) {
-                    errores.add("ERROR: Comilla no cerrada en línea " + lineaActual);
-                    break;
-                }
-                String cadena = texto.substring(pos, endQuote + 1);
-                tokensAnalizados.add(new Lexema(cadena, "T", 450, lineaActual));
-                contadorTiposTokens.put("T", contadorTiposTokens.get("T") + 1);
-                salida.append(cadena + "\tT\t450\tLínea: " + lineaActual + "\n");
-                totalTokens++;
-                pos = endQuote + 1;
-                continue;
+            // Token para la comilla de apertura
+            tokensAnalizados.add(new Lexema("\"", "D", 100, lineaActual));
+            contadorTiposTokens.put("D", contadorTiposTokens.get("D") + 1);
+             salida.append("\"\tD\t100\tLínea: " + lineaActual + "\n");
+            totalTokens++;
+            delimitadores++;
+             pos++;
+    
+            // Buscar el contenido hasta la siguiente comilla
+            int endQuote = texto.indexOf('"', pos);
+            if (endQuote == -1) {
+               errores.add("ERROR: Comilla no cerrada en línea " + lineaActual);
+                break;
             }
-
+    
+                // Extraer el contenido de la cadena (sin las comillas)
+                String contenido = texto.substring(pos, endQuote);
+                if (!contenido.isEmpty()) {
+                // Token para el contenido de la cadena
+                tokensAnalizados.add(new Lexema(contenido, "T", 450, lineaActual));
+                contadorTiposTokens.put("T", contadorTiposTokens.get("T") + 1);
+                salida.append(contenido + "\tT\t450\tLínea: " + lineaActual + "\n");
+                totalTokens++;
+            }
+    
+                // Token para la comilla de cierre
+                tokensAnalizados.add(new Lexema("\"", "D", 100, lineaActual));
+                contadorTiposTokens.put("D", contadorTiposTokens.get("D") + 1);
+                salida.append("\"\tD\t100\tLínea: " + lineaActual + "\n");
+                totalTokens++;
+                delimitadores++;
+    
+                pos = endQuote + 1;
+                   continue;
+            }
             // 2. Números
             if (Character.isDigit(currentChar)) {
                 Pattern numeroPattern = Pattern.compile("^\\d+(\\.\\d+)?([eE][+-]?\\d+)?");
@@ -425,42 +447,45 @@ public class Control {
 
             // 7. Identificadores y palabras reservadas
             if (Character.isLetter(currentChar) || currentChar == '_') {
-                Pattern idPattern = Pattern.compile("^[a-zA-Z_][a-zA-Z0-9_]*");
-                Matcher matcher = idPattern.matcher(restante);
-                if (matcher.find()) {
-                    String identificador = matcher.group();
-                    
-                    // Verificar tipo de token
-                    String tipo;
-                    int tokenCode;
-                    
-                    if (PALABRAS_RESERVADAS.contains(identificador)) {
-                        tipo = "PR";
-                        tokenCode = 50;
-                    } else if (METODOS.contains(identificador)) {
-                        tipo = "M";
-                        tokenCode = 200;
-                    } else if (CLASES.contains(identificador)) {
-                        tipo = "C";
-                        tokenCode = 250;
-                    } else if (ATRIBUTOS.contains(identificador)) {
-                        tipo = "A";
-                        tokenCode = 300;
-                    } else {
-                        tipo = "Id";
-                        tokenCode = 150;
-                        // Agregar a tabla de símbolos
-                        agregarATablaSimbolos(identificador, "S", determinarDireccion("S"), "NULL", lineaActual);
-                    }
-                    
-                    tokensAnalizados.add(new Lexema(identificador, tipo, tokenCode, lineaActual));
-                    contadorTiposTokens.put(tipo, contadorTiposTokens.get(tipo) + 1);
-                    salida.append(identificador + "\t" + tipo + "\t" + tokenCode + "\tLínea: " + lineaActual + "\n");
-                    totalTokens++;
-                    pos += identificador.length();
-                    continue;
-                }
+            Pattern idPattern = Pattern.compile("^[a-zA-Z_][a-zA-Z0-9_]*");
+            Matcher matcher = idPattern.matcher(restante);
+            if (matcher.find()) {
+                String identificador = matcher.group();
+                // Verificar tipo de token
+                 String tipo;
+                int tokenCode;
+                if (PALABRAS_RESERVADAS.contains(identificador)) {
+                 tipo = "PR";
+                  tokenCode = 50;
+                } else if (METODOS.contains(identificador)) {
+                  tipo = "M";
+                   tokenCode = 200;
+                } else if (CLASES.contains(identificador)) {
+                  tipo = "C";
+                  tokenCode = 250;
+                } else if (ATRIBUTOS.contains(identificador)) {
+                   tipo = "A";
+                  tokenCode = 300;
+                } else {
+                 tipo = "Id";
+                 tokenCode = 150;
+                    // Determinar tipo para tabla de símbolos 
+                    // TODAS las letras individuales como double, demás como String
+                 String tipoSimbolo = "S"; // Por defecto (String)
+                 if (identificador.length() == 1 && Character.isLetter(identificador.charAt(0))) {
+                       tipoSimbolo = "D"; // double para cualquier letra individual
+                 }
+                 // Agregar a tabla de símbolos
+                 agregarATablaSimbolos(identificador, tipoSimbolo, determinarDireccion(tipoSimbolo), "NULL", lineaActual);
+             }
+                tokensAnalizados.add(new Lexema(identificador, tipo, tokenCode, lineaActual));
+                contadorTiposTokens.put(tipo, contadorTiposTokens.get(tipo) + 1);
+                salida.append(identificador + "\t" + tipo + "\t" + tokenCode + "\tLínea: " + lineaActual + "\n");
+             totalTokens++;
+             pos += identificador.length();
+              continue;
             }
+        }
 
             // 8. Paquetes (import statements)
             if (restante.startsWith("import ")) {
@@ -614,7 +639,7 @@ public class Control {
         
         JTable table = new JTable();
         DefaultTableModel model = new DefaultTableModel();
-        model.setColumnIdentifiers(new String[]{"Identificador", "Tipo", "Dirección", "Valor", "Línea"});
+        model.setColumnIdentifiers(new String[]{"Identificador", "Tipo", "Dirección", "Valor"});
         
         for (String[] simbolo : tablaSimbolos) {
             model.addRow(simbolo);
