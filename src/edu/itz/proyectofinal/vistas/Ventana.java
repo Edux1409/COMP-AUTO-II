@@ -5,7 +5,7 @@
 package edu.itz.proyectofinal.vistas;
 
 import edu.itz.proyectofinal.control.Control;
-import edu.itz.proyectofinal.sintaxis.AnaSintaxis;
+//import edu.itz.proyectofinal.sintaxis.AnaSintaxis;
 import javax.swing.JLabel;
 import javax.swing.JTextArea;
 /**
@@ -171,7 +171,7 @@ public class Ventana extends javax.swing.JFrame {
     }//GEN-LAST:event_mnuLexicoActionPerformed
 
     private void mnuSintacticoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuSintacticoActionPerformed
-       AnaSintaxis.programa(Ventana.this);
+       //AnaSintaxis.programa(Ventana.this);
     }//GEN-LAST:event_mnuSintacticoActionPerformed
 
     private void mnuTablaTokensActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuTablaTokensActionPerformed

@@ -1,4 +1,4 @@
-package edu.itz.proyectofinal.sintaxis;
+/*package edu.itz.proyectofinal.sintaxis;
 
 import edu.itz.proyectofinal.control.Control;
 import edu.itz.proyectofinal.lexemas.Lexema;
@@ -339,3 +339,4 @@ public class AnaSintaxis {
     }
 }
 }
+*/
