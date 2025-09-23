@@ -272,6 +272,69 @@ public class Control {
         }
     }
 
+    private boolean esVariableDeUsuario(String identificador, String texto, int posActual) {
+        // 1. Excluir identificadores muy comunes que no son variables
+        String[] exclusiones = {"tiz", "java", "util", "clas", "operaciones", "statci", 
+                               "main", "args", "leer", "close", "public", "private", 
+                               "protected", "static", "void", "class", "package", "import",
+                               "String", "System", "out", "in", "Scanner", "new"};
+        
+        for (String exclusion : exclusiones) {
+            if (identificador.equals(exclusion)) {
+                return false;
+            }
+        }
+        
+        // 2. Excluir si está en contexto de import/package/class
+        int inicioLinea = texto.lastIndexOf('\n', posActual) + 1;
+        if (inicioLinea < 0) inicioLinea = 0;
+        int finLinea = texto.indexOf('\n', posActual);
+        if (finLinea < 0) finLinea = texto.length();
+        String linea = texto.substring(inicioLinea, Math.min(finLinea, texto.length())).trim();
+        
+        if (linea.startsWith("import ") || linea.startsWith("package ") || 
+            linea.contains(" class ") || identificador.equals("main")) {
+            return false;
+        }
+        
+        // 3. Solo considerar variables con nombres razonables
+        if (identificador.length() > 30) return false;
+        
+        // 4. Excluir si el identificador está en mayúsculas (posible constante)
+        if (identificador.equals(identificador.toUpperCase()) && identificador.length() > 1) {
+            return false;
+        }
+        
+        // 5. Buscar patrones de declaración de variables simples
+        // Ejemplo: "int x", "String nombre", "double precio"
+        int contextoInicio = Math.max(0, posActual - 30);
+        String contexto = texto.substring(contextoInicio, Math.min(posActual + identificador.length() + 10, texto.length()));
+        
+        // Patrones que indican declaración de variable
+        String[] tipos = {"int", "double", "float", "String", "char", "boolean", "long", "byte"};
+        for (String tipo : tipos) {
+            if (contexto.contains(tipo + " " + identificador) || 
+                contexto.contains(tipo + "\t" + identificador)) {
+                return true;
+            }
+        }
+        
+        // 6. Si es una sola letra, probablemente sea variable
+        if (identificador.length() == 1 && Character.isLetter(identificador.charAt(0))) {
+            return true;
+        }
+        
+        // 7. Verificar si está después de un = (asignación)
+        int posAnterior = Math.max(0, posActual - 1);
+        String textoAnterior = texto.substring(Math.max(0, posAnterior - 10), posAnterior);
+        if (textoAnterior.contains("=") && !textoAnterior.contains("==")) {
+            return true;
+        }
+        
+        // Por defecto, no incluir (ser más conservador)
+        return false;
+    }
+
     public void analizarTexto() {
         tokensAnalizados.clear();
         tablaSimbolos.clear();
@@ -343,41 +406,42 @@ public class Control {
 
             // 1. Cadenas de texto (entre comillas)
             if (currentChar == '"') {
-            // Token para la comilla de apertura
-            tokensAnalizados.add(new Lexema("\"", "D", 100, lineaActual));
-            contadorTiposTokens.put("D", contadorTiposTokens.get("D") + 1);
-             salida.append("\"\tD\t100\tLínea: " + lineaActual + "\n");
-            totalTokens++;
-            delimitadores++;
-             pos++;
-    
-            // Buscar el contenido hasta la siguiente comilla
-            int endQuote = texto.indexOf('"', pos);
-            if (endQuote == -1) {
-               errores.add("ERROR: Comilla no cerrada en línea " + lineaActual);
-                break;
-            }
-    
+                // Token para la comilla de apertura
+                tokensAnalizados.add(new Lexema("\"", "D", 100, lineaActual));
+                contadorTiposTokens.put("D", contadorTiposTokens.get("D") + 1);
+                salida.append("\"\tD\t100\tLínea: " + lineaActual + "\n");
+                totalTokens++;
+                delimitadores++;
+                pos++;
+
+                // Buscar el contenido hasta la siguiente comilla
+                int endQuote = texto.indexOf('"', pos);
+                if (endQuote == -1) {
+                    errores.add("ERROR: Comilla no cerrada en línea " + lineaActual);
+                    break;
+                }
+
                 // Extraer el contenido de la cadena (sin las comillas)
                 String contenido = texto.substring(pos, endQuote);
                 if (!contenido.isEmpty()) {
-                // Token para el contenido de la cadena
-                tokensAnalizados.add(new Lexema(contenido, "T", 450, lineaActual));
-                contadorTiposTokens.put("T", contadorTiposTokens.get("T") + 1);
-                salida.append(contenido + "\tT\t450\tLínea: " + lineaActual + "\n");
-                totalTokens++;
-            }
-    
+                    // Token para el contenido de la cadena
+                    tokensAnalizados.add(new Lexema(contenido, "T", 450, lineaActual));
+                    contadorTiposTokens.put("T", contadorTiposTokens.get("T") + 1);
+                    salida.append(contenido + "\tT\t450\tLínea: " + lineaActual + "\n");
+                    totalTokens++;
+                }
+
                 // Token para la comilla de cierre
                 tokensAnalizados.add(new Lexema("\"", "D", 100, lineaActual));
                 contadorTiposTokens.put("D", contadorTiposTokens.get("D") + 1);
                 salida.append("\"\tD\t100\tLínea: " + lineaActual + "\n");
                 totalTokens++;
                 delimitadores++;
-    
+
                 pos = endQuote + 1;
-                   continue;
+                continue;
             }
+            
             // 2. Números
             if (Character.isDigit(currentChar)) {
                 Pattern numeroPattern = Pattern.compile("^\\d+(\\.\\d+)?([eE][+-]?\\d+)?");
@@ -448,45 +512,49 @@ public class Control {
 
             // 7. Identificadores y palabras reservadas
             if (Character.isLetter(currentChar) || currentChar == '_') {
-            Pattern idPattern = Pattern.compile("^[a-zA-Z_][a-zA-Z0-9_]*");
-            Matcher matcher = idPattern.matcher(restante);
-            if (matcher.find()) {
-                String identificador = matcher.group();
-                // Verificar tipo de token
-                 String tipo;
-                int tokenCode;
-                if (PALABRAS_RESERVADAS.contains(identificador)) {
-                 tipo = "PR";
-                  tokenCode = 50;
-                } else if (METODOS.contains(identificador)) {
-                  tipo = "M";
-                   tokenCode = 200;
-                } else if (CLASES.contains(identificador)) {
-                  tipo = "C";
-                  tokenCode = 250;
-                } else if (ATRIBUTOS.contains(identificador)) {
-                   tipo = "A";
-                  tokenCode = 300;
-                } else {
-                 tipo = "Id";
-                 tokenCode = 150;
-                    // Determinar tipo para tabla de símbolos 
-                    // TODAS las letras individuales como double, demás como String
-                 String tipoSimbolo = "S"; // Por defecto (String)
-                 if (identificador.length() == 1 && Character.isLetter(identificador.charAt(0))) {
-                       tipoSimbolo = "D"; // double para cualquier letra individual
-                 }
-                 // Agregar a tabla de símbolos
-                 agregarATablaSimbolos(identificador, tipoSimbolo, determinarDireccion(tipoSimbolo), "NULL", lineaActual);
-             }
-                tokensAnalizados.add(new Lexema(identificador, tipo, tokenCode, lineaActual));
-                contadorTiposTokens.put(tipo, contadorTiposTokens.get(tipo) + 1);
-                salida.append(identificador + "\t" + tipo + "\t" + tokenCode + "\tLínea: " + lineaActual + "\n");
-             totalTokens++;
-             pos += identificador.length();
-              continue;
+                Pattern idPattern = Pattern.compile("^[a-zA-Z_][a-zA-Z0-9_]*");
+                Matcher matcher = idPattern.matcher(restante);
+                if (matcher.find()) {
+                    String identificador = matcher.group();
+                    // Verificar tipo de token
+                    String tipo;
+                    int tokenCode;
+                    if (PALABRAS_RESERVADAS.contains(identificador)) {
+                        tipo = "PR";
+                        tokenCode = 50;
+                    } else if (METODOS.contains(identificador)) {
+                        tipo = "M";
+                        tokenCode = 200;
+                    } else if (CLASES.contains(identificador)) {
+                        tipo = "C";
+                        tokenCode = 250;
+                    } else if (ATRIBUTOS.contains(identificador)) {
+                        tipo = "A";
+                        tokenCode = 300;
+                    } else {
+                        tipo = "Id";
+                        tokenCode = 150;
+                        
+                        // SOLO agregar a tabla de símbolos si es una variable válida
+                        if (esVariableDeUsuario(identificador, texto, pos)) {
+                            // Determinar tipo para tabla de símbolos 
+                            String tipoSimbolo = "S"; // Por defecto (String)
+                            if (identificador.length() == 1 && Character.isLetter(identificador.charAt(0))) {
+                                tipoSimbolo = "D"; // double para cualquier letra individual
+                            }
+                            // Agregar a tabla de símbolos
+                            agregarATablaSimbolos(identificador, tipoSimbolo, determinarDireccion(tipoSimbolo), "NULL", lineaActual);
+                        }
+                    }
+                    
+                    tokensAnalizados.add(new Lexema(identificador, tipo, tokenCode, lineaActual));
+                    contadorTiposTokens.put(tipo, contadorTiposTokens.get(tipo) + 1);
+                    salida.append(identificador + "\t" + tipo + "\t" + tokenCode + "\tLínea: " + lineaActual + "\n");
+                    totalTokens++;
+                    pos += identificador.length();
+                    continue;
+                }
             }
-        }
 
             // 8. Paquetes (import statements)
             if (restante.startsWith("import ")) {
@@ -599,45 +667,46 @@ public class Control {
 
     
     public void mostrarTablaTokens() {
-    // Crear un mapa con todos los tipos de tokens posibles y sus códigos
-    Map<String, Integer> todosLosTipos = new LinkedHashMap<>(); // LinkedHashMap mantiene el orden
-    todosLosTipos.put("PR", 50);    // Palabras reservadas
-    todosLosTipos.put("D", 100);    // Delimitadores
-    todosLosTipos.put("Id", 150);   // Identificadores
-    todosLosTipos.put("M", 200);    // Métodos
-    todosLosTipos.put("C", 250);    // Clases
-    todosLosTipos.put("A", 300);    // Atributos
-    todosLosTipos.put("AM", 350);   // Argumentos de métodos
-    todosLosTipos.put("P", 400);    // Paquetes
-    todosLosTipos.put("T", 450);    // Texto (cadenas)
-    todosLosTipos.put("N", 500);    // Números
-    todosLosTipos.put("OPB", 550);  // Operadores booleanos
-    todosLosTipos.put("OPA", 600);  // Operadores aritméticos
-    todosLosTipos.put("OPL", 650);  // Operadores lógicos
-    todosLosTipos.put("OPN", 700);  // Operadores a nivel de bits
-    todosLosTipos.put("OPR", 750);  // Operadores relacionales
-    
-    JFrame frameTokens = new JFrame("Tabla de Tokens - Todos los Tipos");
-    frameTokens.setSize(400, 500);
-    frameTokens.setLocationRelativeTo(null);
-    
-    JTable table = new JTable();
-    DefaultTableModel model = new DefaultTableModel();
-    model.setColumnIdentifiers(new String[]{"Tipo de Token", "Número de Token"});
-    
-    // Mostrar TODOS los tipos, independientemente de si aparecieron o no
-    for (Map.Entry<String, Integer> tipo : todosLosTipos.entrySet()) {
-        model.addRow(new Object[]{
-            tipo.getKey(),
-            tipo.getValue()
-        });
+        // Crear un mapa con todos los tipos de tokens posibles y sus códigos
+        Map<String, Integer> todosLosTipos = new LinkedHashMap<>(); // LinkedHashMap mantiene el orden
+        todosLosTipos.put("PR", 50);    // Palabras reservadas
+        todosLosTipos.put("D", 100);    // Delimitadores
+        todosLosTipos.put("Id", 150);   // Identificadores
+        todosLosTipos.put("M", 200);    // Métodos
+        todosLosTipos.put("C", 250);    // Clases
+        todosLosTipos.put("A", 300);    // Atributos
+        todosLosTipos.put("AM", 350);   // Argumentos de métodos
+        todosLosTipos.put("P", 400);    // Paquetes
+        todosLosTipos.put("T", 450);    // Texto (cadenas)
+        todosLosTipos.put("N", 500);    // Números
+        todosLosTipos.put("OPB", 550);  // Operadores booleanos
+        todosLosTipos.put("OPA", 600);  // Operadores aritméticos
+        todosLosTipos.put("OPL", 650);  // Operadores lógicos
+        todosLosTipos.put("OPN", 700);  // Operadores a nivel de bits
+        todosLosTipos.put("OPR", 750);  // Operadores relacionales
+        
+        JFrame frameTokens = new JFrame("Tabla de Tokens - Todos los Tipos");
+        frameTokens.setSize(400, 500);
+        frameTokens.setLocationRelativeTo(null);
+        
+        JTable table = new JTable();
+        DefaultTableModel model = new DefaultTableModel();
+        model.setColumnIdentifiers(new String[]{"Tipo de Token", "Número de Token"});
+        
+        // Mostrar TODOS los tipos, independientemente de si aparecieron o no
+        for (Map.Entry<String, Integer> tipo : todosLosTipos.entrySet()) {
+            model.addRow(new Object[]{
+                tipo.getKey(),
+                tipo.getValue()
+            });
+        }
+        
+        table.setModel(model);
+        JScrollPane scrollPane = new JScrollPane(table);
+        frameTokens.add(scrollPane);
+        frameTokens.setVisible(true);
     }
     
-    table.setModel(model);
-    JScrollPane scrollPane = new JScrollPane(table);
-    frameTokens.add(scrollPane);
-    frameTokens.setVisible(true);
-}
     public void mostrarTablaSimbolos() {
         if (tablaSimbolos.isEmpty()) {
             JOptionPane.showMessageDialog(v, "No hay símbolos para mostrar en la tabla.");
@@ -671,4 +740,3 @@ public class Control {
         return tablaSimbolos;
     }
 }
-
