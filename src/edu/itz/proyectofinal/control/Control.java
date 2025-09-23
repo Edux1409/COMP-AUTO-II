@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -596,36 +597,47 @@ public class Control {
         }
     }
 
+    
     public void mostrarTablaTokens() {
-        if (tokensAnalizados.isEmpty()) {
-            JOptionPane.showMessageDialog(v, "No hay tokens para mostrar. Primero ejecute el análisis léxico.");
-            return;
-        }
-        
-           
-        JFrame frameTokens = new JFrame("Tabla de Tokens");
-        frameTokens.setSize(800, 500);
-        frameTokens.setLocationRelativeTo(null);
-        
-        JTable table = new JTable();
-        DefaultTableModel model = new DefaultTableModel();
-        model.setColumnIdentifiers(new String[]{"Elemento", "Tipo", "Token", "Línea"});
-        
-        for (Lexema lexema : tokensAnalizados) {
-            model.addRow(new Object[]{
-                lexema.getElemento(),
-                lexema.getTipoToken(),
-                lexema.getToken(),
-                lexema.getLinea()
-            });
-        }
-        
-        table.setModel(model);
-        JScrollPane scrollPane = new JScrollPane(table);
-        frameTokens.add(scrollPane);
-        frameTokens.setVisible(true);
+    // Crear un mapa con todos los tipos de tokens posibles y sus códigos
+    Map<String, Integer> todosLosTipos = new LinkedHashMap<>(); // LinkedHashMap mantiene el orden
+    todosLosTipos.put("PR", 50);    // Palabras reservadas
+    todosLosTipos.put("D", 100);    // Delimitadores
+    todosLosTipos.put("Id", 150);   // Identificadores
+    todosLosTipos.put("M", 200);    // Métodos
+    todosLosTipos.put("C", 250);    // Clases
+    todosLosTipos.put("A", 300);    // Atributos
+    todosLosTipos.put("AM", 350);   // Argumentos de métodos
+    todosLosTipos.put("P", 400);    // Paquetes
+    todosLosTipos.put("T", 450);    // Texto (cadenas)
+    todosLosTipos.put("N", 500);    // Números
+    todosLosTipos.put("OPB", 550);  // Operadores booleanos
+    todosLosTipos.put("OPA", 600);  // Operadores aritméticos
+    todosLosTipos.put("OPL", 650);  // Operadores lógicos
+    todosLosTipos.put("OPN", 700);  // Operadores a nivel de bits
+    todosLosTipos.put("OPR", 750);  // Operadores relacionales
+    
+    JFrame frameTokens = new JFrame("Tabla de Tokens - Todos los Tipos");
+    frameTokens.setSize(400, 500);
+    frameTokens.setLocationRelativeTo(null);
+    
+    JTable table = new JTable();
+    DefaultTableModel model = new DefaultTableModel();
+    model.setColumnIdentifiers(new String[]{"Tipo de Token", "Número de Token"});
+    
+    // Mostrar TODOS los tipos, independientemente de si aparecieron o no
+    for (Map.Entry<String, Integer> tipo : todosLosTipos.entrySet()) {
+        model.addRow(new Object[]{
+            tipo.getKey(),
+            tipo.getValue()
+        });
     }
-
+    
+    table.setModel(model);
+    JScrollPane scrollPane = new JScrollPane(table);
+    frameTokens.add(scrollPane);
+    frameTokens.setVisible(true);
+}
     public void mostrarTablaSimbolos() {
         if (tablaSimbolos.isEmpty()) {
             JOptionPane.showMessageDialog(v, "No hay símbolos para mostrar en la tabla.");

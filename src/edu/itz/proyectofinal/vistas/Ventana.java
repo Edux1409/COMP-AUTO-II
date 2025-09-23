@@ -44,7 +44,6 @@ public class Ventana extends javax.swing.JFrame {
         mnuSalir = new javax.swing.JMenuItem();
         jmnuCompilar = new javax.swing.JMenu();
         mnuLexico = new javax.swing.JMenuItem();
-        mnuSintactico = new javax.swing.JMenuItem();
         jmTablas = new javax.swing.JMenu();
         mnuTablaTokens = new javax.swing.JMenuItem();
 
@@ -98,14 +97,6 @@ public class Ventana extends javax.swing.JFrame {
             }
         });
         jmnuCompilar.add(mnuLexico);
-
-        mnuSintactico.setText("Sintáctico");
-        mnuSintactico.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                mnuSintacticoActionPerformed(evt);
-            }
-        });
-        jmnuCompilar.add(mnuSintactico);
 
         jMenuBar1.add(jmnuCompilar);
 
@@ -170,10 +161,6 @@ public class Ventana extends javax.swing.JFrame {
         c.analizarTexto();
     }//GEN-LAST:event_mnuLexicoActionPerformed
 
-    private void mnuSintacticoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuSintacticoActionPerformed
-       //AnaSintaxis.programa(Ventana.this);
-    }//GEN-LAST:event_mnuSintacticoActionPerformed
-
     private void mnuTablaTokensActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuTablaTokensActionPerformed
          c.mostrarTablaTokens();
          
@@ -207,7 +194,6 @@ public class Ventana extends javax.swing.JFrame {
     private javax.swing.JMenuItem mnuLexico;
     private javax.swing.JMenuItem mnuLimpiar;
     private javax.swing.JMenuItem mnuSalir;
-    private javax.swing.JMenuItem mnuSintactico;
     private javax.swing.JMenuItem mnuTablaTokens;
     private javax.swing.JTextArea txtCodigo;
     private javax.swing.JTextArea txtMensajes;
