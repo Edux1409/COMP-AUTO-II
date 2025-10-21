@@ -6,6 +6,7 @@ package edu.itz.proyectofinal.vistas;
 
 import edu.itz.proyectofinal.control.Control;
 import edu.itz.proyectofinal.sintaxis.AnaSintaxis;
+import edu.itz.proyectofinal.semantico.Semantico;
 //import edu.itz.proyectofinal.sintaxis.AnaSintaxis;
 import javax.swing.JLabel;
 import javax.swing.JTextArea;
@@ -46,6 +47,7 @@ public class Ventana extends javax.swing.JFrame {
         jmnuCompilar = new javax.swing.JMenu();
         mnuLexico = new javax.swing.JMenuItem();
         mnuSintaxis = new javax.swing.JMenuItem();
+        mnuSemantico = new javax.swing.JMenuItem();
         jmTablas = new javax.swing.JMenu();
         mnuTablaTokens = new javax.swing.JMenuItem();
 
@@ -107,6 +109,14 @@ public class Ventana extends javax.swing.JFrame {
             }
         });
         jmnuCompilar.add(mnuSintaxis);
+
+        mnuSemantico.setText("Semantico");
+        mnuSemantico.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                mnuSemanticoActionPerformed(evt);
+            }
+        });
+        jmnuCompilar.add(mnuSemantico);
 
         jMenuBar1.add(jmnuCompilar);
 
@@ -173,13 +183,15 @@ public class Ventana extends javax.swing.JFrame {
 
     private void mnuTablaTokensActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuTablaTokensActionPerformed
          c.mostrarTablaTokens();
-         
     }//GEN-LAST:event_mnuTablaTokensActionPerformed
 
     private void mnuSintaxisActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuSintaxisActionPerformed
-    
         AnaSintaxis.programa(Ventana.this);
     }//GEN-LAST:event_mnuSintaxisActionPerformed
+
+    private void mnuSemanticoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuSemanticoActionPerformed
+       Semantico.programa(Ventana.this);
+    }//GEN-LAST:event_mnuSemanticoActionPerformed
 
      public JTextArea getTxtContenido() {
         return txtCodigo;
@@ -209,6 +221,7 @@ public class Ventana extends javax.swing.JFrame {
     private javax.swing.JMenuItem mnuLexico;
     private javax.swing.JMenuItem mnuLimpiar;
     private javax.swing.JMenuItem mnuSalir;
+    private javax.swing.JMenuItem mnuSemantico;
     private javax.swing.JMenuItem mnuSintaxis;
     private javax.swing.JMenuItem mnuTablaTokens;
     private javax.swing.JTextArea txtCodigo;
