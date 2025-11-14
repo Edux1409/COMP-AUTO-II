@@ -2,6 +2,7 @@ package edu.itz.proyectofinal.control;
 
 import edu.itz.proyectofinal.lexemas.Lexema;
 import edu.itz.proyectofinal.vistas.Ventana;
+import edu.itz.proyectofinal.semantico.AnaSemantico;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -17,6 +18,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.table.DefaultTableModel;
@@ -875,7 +877,7 @@ public class Control {
             mostrarTablaSimbolos();
         }
     }
-
+    
     private void mostrarEstadisticas(JTextArea salida) {
         salida.append("\n--- ESTADÍSTICAS ---\n");
         salida.append("Número de lecturas: " + lecturas + "\n");
@@ -996,4 +998,63 @@ public class Control {
     public static ArrayList<String[]> getTablaSimbolos() {
         return tablaSimbolos;
     }
+    // Agrega este método en tu clase Control
+public void mostrarPilasSemanticas() {
+    if (!AnaSemantico.hayExpresionParaMostrar()) {
+        JOptionPane.showMessageDialog(v, "No hay expresión de asignación para mostrar las pilas.\n"
+                + "Realice primero el análisis semántico.", 
+                "Sin Datos", JOptionPane.INFORMATION_MESSAGE);
+        return;
+    }
+    
+    // Crear ventana con pestañas para las pilas
+    JFrame framePilas = new JFrame("Pilas Semánticas - Análisis de Expresión");
+    framePilas.setSize(800, 600);
+    framePilas.setLocationRelativeTo(null);
+    
+    JTabbedPane tabbedPane = new JTabbedPane();
+    
+    // Pestaña 1: Pila RID
+    JTable tablaRID = new JTable();
+    DefaultTableModel modelRID = new DefaultTableModel();
+    modelRID.setColumnIdentifiers(new String[]{"Posición", "Elemento"});
+    
+    ArrayList<String[]> datosRID = AnaSemantico.getPilaRIDData();
+    for (String[] fila : datosRID) {
+        modelRID.addRow(fila);
+    }
+    
+    tablaRID.setModel(modelRID);
+    JScrollPane scrollRID = new JScrollPane(tablaRID);
+    tabbedPane.addTab("Pila RID (Identificadores/Constantes)", scrollRID);
+    
+    // Pestaña 2: Pila IDR
+    JTable tablaIDR = new JTable();
+    DefaultTableModel modelIDR = new DefaultTableModel();
+    modelIDR.setColumnIdentifiers(new String[]{"Posición", "Tipo"});
+    
+    ArrayList<String[]> datosIDR = AnaSemantico.getPilaIDRData();
+    for (String[] fila : datosIDR) {
+        modelIDR.addRow(fila);
+    }
+    
+    tablaIDR.setModel(modelIDR);
+    JScrollPane scrollIDR = new JScrollPane(tablaIDR);
+    tabbedPane.addTab("Pila IDR (Tipos)", scrollIDR);
+    
+    // Pestaña 3: Resultado del Análisis
+    JTextArea areaResultado = new JTextArea();
+    areaResultado.setText(AnaSemantico.getResultadoAnalisis());
+    areaResultado.setEditable(false);
+    areaResultado.setLineWrap(true);
+    areaResultado.setWrapStyleWord(true);
+    areaResultado.setBackground(new java.awt.Color(240, 240, 240));
+    areaResultado.setFont(new java.awt.Font("Monospaced", java.awt.Font.PLAIN, 14));
+    
+    JScrollPane scrollResultado = new JScrollPane(areaResultado);
+    tabbedPane.addTab("Resultado del Análisis", scrollResultado);
+    
+    framePilas.add(tabbedPane);
+    framePilas.setVisible(true);
+}
 }

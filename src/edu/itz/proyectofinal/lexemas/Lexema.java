@@ -4,10 +4,7 @@
  */
 package edu.itz.proyectofinal.lexemas;
 
-/**
- *
- * @author ChrisMtz
- */
+
 public class Lexema {
     private String elemento;
     private String tipoToken;  // PR, D, Id, M, C, A, AM, P, T, N, OPB, OPA, OPL, OPN, OPR
