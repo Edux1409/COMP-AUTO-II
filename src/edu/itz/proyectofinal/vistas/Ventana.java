@@ -50,7 +50,6 @@ public class Ventana extends javax.swing.JFrame {
         mnuSemantico = new javax.swing.JMenuItem();
         jmTablas = new javax.swing.JMenu();
         mnuTablaTokens = new javax.swing.JMenuItem();
-        mnuMostrarPilas = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -131,14 +130,6 @@ public class Ventana extends javax.swing.JFrame {
         });
         jmTablas.add(mnuTablaTokens);
 
-        mnuMostrarPilas.setText("Pilas");
-        mnuMostrarPilas.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                mnuMostrarPilasActionPerformed(evt);
-            }
-        });
-        jmTablas.add(mnuMostrarPilas);
-
         jMenuBar1.add(jmTablas);
 
         setJMenuBar(jMenuBar1);
@@ -199,12 +190,8 @@ public class Ventana extends javax.swing.JFrame {
     }//GEN-LAST:event_mnuSintaxisActionPerformed
 
     private void mnuSemanticoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuSemanticoActionPerformed
-       AnaSemantico.programa(this);
+       AnaSemantico.programa(Ventana.this);
     }//GEN-LAST:event_mnuSemanticoActionPerformed
-
-    private void mnuMostrarPilasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mnuMostrarPilasActionPerformed
-        c.mostrarPilasSemanticas();
-    }//GEN-LAST:event_mnuMostrarPilasActionPerformed
 
      public JTextArea getTxtContenido() {
         return txtCodigo;
@@ -233,7 +220,6 @@ public class Ventana extends javax.swing.JFrame {
     private javax.swing.JMenuItem mnuAbrir;
     private javax.swing.JMenuItem mnuLexico;
     private javax.swing.JMenuItem mnuLimpiar;
-    private javax.swing.JMenuItem mnuMostrarPilas;
     private javax.swing.JMenuItem mnuSalir;
     private javax.swing.JMenuItem mnuSemantico;
     private javax.swing.JMenuItem mnuSintaxis;
